@@ -17,6 +17,7 @@ IP=""
 PORT=0
 
 count=0
+to=0
 count_of_received=0
 rtt_sum=0.0
 rtt_min=99999999.0
@@ -33,7 +34,7 @@ def signal_handler(signal, frame):
 	os._exit(0)
 
 def random_string(length):
-        return ''.join(random.choice(string.ascii_letters+ string.digits ) for m in range(length))
+	return ''.join(random.choice(string.ascii_letters+ string.digits ) for m in range(length))
 
 if len(sys.argv) != 3 and len(sys.argv)!=4 :
 	print(""" usage:""")
@@ -42,8 +43,8 @@ if len(sys.argv) != 3 and len(sys.argv)!=4 :
 
 	print()
 	print(""" options:""")
-	print("""   LEN         the length of payload, unit:byte""")
-	print("""   INTERVAL    the seconds waited between sending each packet, as well as the timeout for reply packet, unit: ms""")
+	print("""   LEN		 the length of payload, unit:byte""")
+	print("""   INTERVAL	the seconds waited between sending each packet, as well as the timeout for reply packet, unit: ms""")
 
 	print()
 	print(" examples:")
@@ -95,7 +96,7 @@ while True:
 		if timeout <0:
 			break
 		#print "timeout=",timeout
-		sock.settimeout(timeout);
+		sock.settimeout(timeout)
 		try:
 			recv_data,addr = sock.recvfrom(65536)
 			if recv_data== payload.encode()  and addr[0]==IP and addr[1]==PORT:
@@ -110,6 +111,7 @@ while True:
 			pass
 	count+=	1
 	if received==1:
+		to=0
 		count_of_received+=1
 		rtt_sum+=rtt
 		rtt_max=max(rtt_max,rtt)
@@ -117,6 +119,9 @@ while True:
 	else:
 		print("Request timed out")
 		sys.stdout.flush()
+		to+=1
+		if to>=5:
+			os.system("traceroute --sport=60000 -p %d -U %s"%(PORT, IP))
 
 	time_remaining=deadline-time.time()
 	if(time_remaining>0):
